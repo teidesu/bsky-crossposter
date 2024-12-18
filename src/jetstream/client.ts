@@ -4,12 +4,7 @@ import { connectWsFramed, PersistentConnection } from '@fuman/net'
 import { Emitter } from '@fuman/utils'
 import { parseJetStreamEvent } from './definitions.ts'
 
-const DEFAULT_URLS = [
-    'wss://jetstream1.us-east.bsky.network',
-    'wss://jetstream2.us-east.bsky.network',
-    'wss://jetstream1.us-west.bsky.network',
-    'wss://jetstream2.us-west.bsky.network',
-]
+const DEFAULT_URL = 'wss://jetstream1.us-east.bsky.network'
 
 export interface JetStreamClientOptions {
     url?: string
@@ -17,6 +12,7 @@ export interface JetStreamClientOptions {
     wantedCollections?: string[]
     maxMessageSizeBytes?: string[]
     startCursor?: string
+    startCursorExclusive?: boolean
 }
 
 export class JetStreamClient {
@@ -30,7 +26,8 @@ export class JetStreamClient {
 
     constructor(private readonly options: JetStreamClientOptions = {}) {
         this.#cursor = options.startCursor
-        this.#endpoint = options.url ?? DEFAULT_URLS[Math.floor(Math.random() * DEFAULT_URLS.length)]
+        if (options.startCursorExclusive && this.#cursor) this.#cursor = (BigInt(this.#cursor) + 1n).toString()
+        this.#endpoint = options.url ?? DEFAULT_URL
 
         this.#connection = new PersistentConnection({
             connect: (url) => {

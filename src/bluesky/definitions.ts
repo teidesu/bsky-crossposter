@@ -31,6 +31,7 @@ const RecordEmbed = v.object({
         uri: v.string(),
     }),
 })
+export type RecordEmbed = v.Infer<typeof RecordEmbed>
 
 const Facet = v.object({
     index: v.object({

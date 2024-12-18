@@ -27,6 +27,6 @@ export const handler: EventHandler = async (event) => {
         // ID of the Telegram chat to send the message to
         chatId: -100123123123,
         // prepend a tilde with a link to the original post in bluesky
-        prepareText: text => `${makeLinkToOriginalPost(event, '~')} ${text}`,
+        finalizeText: text => `${makeLinkToOriginalPost(event, '~')} ${text}`,
     })
 }

@@ -4,17 +4,19 @@ import { Deferred, LruMap } from '@fuman/utils'
 
 const DidDocument = v.object({
     id: v.string(),
+    alsoKnownAs: v.array(v.string()),
     service: v.array(v.object({
         id: v.string(),
         type: v.string(),
         serviceEndpoint: v.string(),
     })),
 })
+type DidDocument = v.Infer<typeof DidDocument>
 
-const cache = new LruMap<string, string>(100)
-const pending = new Map<string, Promise<string>>()
+const cache = new LruMap<string, DidDocument>(100)
+const pending = new Map<string, Promise<void>>()
 
-export async function getUserPds(did: string): Promise<string> {
+export async function getUserDidDocument(did: string): Promise<DidDocument> {
     if (cache.has(did)) {
         // eslint-disable-next-line ts/no-non-null-assertion
         return cache.get(did)!
@@ -22,42 +24,49 @@ export async function getUserPds(did: string): Promise<string> {
 
     const promise = pending.get(did)
     if (promise) {
-        return promise
+        await promise
+        // eslint-disable-next-line ts/no-non-null-assertion
+        return cache.get(did)!
     }
 
-    const deferred = new Deferred<string>()
-
-    pending.set(did, deferred.promise)
+    const deferred = new Deferred<void>()
 
     try {
-        let document
+        let json
         if (did.startsWith('did:web:')) {
-            document = await ffetchBase('/.well-known/did.json', {
+            json = await ffetchBase('/.well-known/did.json', {
                 baseUrl: `https://${did.replace('did:web:', '')}`,
             }).json()
         } else if (did.startsWith('did:plc')) {
-            document = await ffetchBase(`https://plc.directory/${did}`).json()
+            json = await ffetchBase(`https://plc.directory/${did}`).json()
         } else {
             throw new Error(`Invalid DID: ${did}`)
         }
 
-        const parsed = DidDocument.parse(document, { mode: 'passthrough' })
+        const parsed = DidDocument.parse(json, { mode: 'passthrough' })
         if (parsed.id !== did) {
             throw new Error(`DID document did not match DID: ${did}`)
         }
 
-        const pds = parsed.service.find(s => s.type === 'AtprotoPersonalDataServer')
-        if (!pds) {
-            throw new Error('DID document does not contain a PDS')
-        }
-
-        cache.set(did, pds.serviceEndpoint)
-        deferred.resolve(pds.serviceEndpoint)
-
-        return pds.serviceEndpoint
-    } catch (e) {
-        deferred.reject(e)
+        cache.set(did, parsed)
+        deferred.resolve()
         pending.delete(did)
+
+        return parsed
+    } catch (e) {
+        pending.delete(did)
+        deferred.reject(e)
         throw e
     }
+}
+
+export async function getUserPds(did: string): Promise<string> {
+    const doc = await getUserDidDocument(did)
+
+    const pds = doc.service.find(s => s.type === 'AtprotoPersonalDataServer')
+    if (!pds) {
+        throw new Error('DID document does not contain a PDS')
+    }
+
+    return pds.serviceEndpoint
 }

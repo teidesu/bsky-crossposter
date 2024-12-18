@@ -10,12 +10,22 @@ const js = new JetStreamClient({
     wantedDids: watchedDids,
     wantedCollections: ['app.bsky.feed.post', 'app.bsky.feed.repost', 'app.bsky.feed.like'],
     startCursor: getKv(CURSOR_KV_KEY, v.string()),
+    startCursorExclusive: true,
+})
+
+js.onConnect.add(() => {
+    console.log('[i] connected to jetstream')
+})
+js.onDisconnect.add(() => {
+    console.log('[i] disconnected from jetstream')
 })
 
 const lock = new AsyncLock()
 js.onEvent.add((event) => {
     if (event.kind !== 'commit') return
     setKv(CURSOR_KV_KEY, event.time_us)
+
+    console.log('[i] received %s commit to at://%s/%s (time_us=%s)', event.commit.operation, event.did, event.commit.collection, event.time_us)
 
     lock.acquire()
         .then(() => handler(event))

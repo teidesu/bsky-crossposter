@@ -38,6 +38,10 @@ export async function getBlobUrl(did: string, cid: string) {
     return new URL(`/xrpc/com.atproto.sync.getBlob?did=${did}&cid=${cid}`, pds).href
 }
 
+export function getPostUrl(params: { did: string, rkey: string }) {
+    return `https://bsky.app/profile/${params.did}/post/${params.rkey}`
+}
+
 export function parseAtUri(uri: string) {
     if (!uri.startsWith('at://')) throw new Error('not an at uri')
 

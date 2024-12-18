@@ -1,6 +1,7 @@
 import type { BlueskyPost } from '../bluesky/definitions.ts'
 import type { JetStreamEvent } from '../jetstream/definitions.ts'
 import { utf8 } from '@fuman/utils'
+import { getPostUrl } from '../bluesky/utils.ts'
 
 export function escapeHtml(text: string): string {
     return text
@@ -14,9 +15,7 @@ export function escapeHtml(text: string): string {
 export function makeLinkToOriginalPost(event: JetStreamEvent, text: string): string {
     if (event.kind !== 'commit' || !event.commit.rkey) throw new Error('not a commit')
 
-    const link = `https://bsky.app/profile/${event.did}/post/${event.commit.rkey}`
-
-    return `<a href="${link}">${escapeHtml(text)}</a>`
+    return `<a href="${getPostUrl({ did: event.did, rkey: event.commit.rkey })}">${escapeHtml(text)}</a>`
 }
 
 export function formatPostText(post: BlueskyPost): string {
