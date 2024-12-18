@@ -1,0 +1,35 @@
+{
+    "name": "bsky-crossposter",
+    "type": "module",
+    "version": "1.0.0",
+    "packageManager": "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903",
+    "description": "",
+    "author": "",
+    "license": "MIT",
+    "keywords": [],
+    "main": "index.js",
+    "scripts": {
+        "dev": "dotenv tsx watch src/main.ts",
+        "start": "dotenv tsx src/main.ts",
+        "start:prod": "drizzle-kit migrate && tsx src/main.ts"
+    },
+    "dependencies": {
+        "@antfu/eslint-config": "^3.12.0",
+        "@atcute/car": "^1.1.1",
+        "@atcute/cbor": "^1.0.6",
+        "@badrap/valita": "^0.4.2",
+        "@fuman/fetch": "0.0.4",
+        "@fuman/net": "0.0.4",
+        "@fuman/utils": "0.0.4",
+        "@gramio/types": "^8.1.0",
+        "@types/node": "^22.10.2",
+        "better-sqlite3": "^11.7.0",
+        "drizzle-orm": "^0.38.2",
+        "tsx": "^4.19.2"
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "^7.6.12",
+        "dotenv-cli": "7.4.4",
+        "drizzle-kit": "^0.30.1"
+    }
+}

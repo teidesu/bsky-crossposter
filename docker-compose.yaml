@@ -1,0 +1,10 @@
+services:
+  app:
+    # to use pre-built image, use the following line instead
+    # image: ghcr.io/teidesu/bsky-crossposter:latest
+    build: .
+    volumes:
+      - ./config.ts:/app/config.ts
+      - ./.runtime:/app/.runtime
+    env_file:
+      - .env

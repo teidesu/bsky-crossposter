@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1734522795525,
+      "tag": "0000_neat_inertia",
+      "breakpoints": true
+    }
+  ]
+}
