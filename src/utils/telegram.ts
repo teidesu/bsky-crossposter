@@ -3,7 +3,7 @@ import type {
     APIMethodParams,
     APIMethods,
 } from '@gramio/types'
-import type { ImagesEmbed, RecordEmbed } from '../bluesky/definitions.ts'
+import type { ImagesEmbed, RecordEmbed, VideoEmbed } from '../bluesky/definitions.ts'
 import type { JetStreamEvent } from '../jetstream/definitions.ts'
 import * as v from '@badrap/valita'
 import { ffetchAddons, ffetchBase } from '@fuman/fetch'
@@ -163,6 +163,7 @@ export async function crosspostToTelegram(
     const spoiler = record.labels !== undefined && record.labels.values.length > 0
 
     let images: ImagesEmbed | undefined
+    let video: VideoEmbed | undefined
     let quote: RecordEmbed | undefined
     let replyToMessageId: number | undefined
 
@@ -170,10 +171,17 @@ export async function crosspostToTelegram(
         if (record.embed.$type === 'app.bsky.embed.images') {
             images = record.embed
         } else if (record.embed.$type === 'app.bsky.embed.recordWithMedia') {
-            images = record.embed.media
+            // images = record.embed.media
+            if (record.embed.media.$type === 'app.bsky.embed.images') {
+                images = record.embed.media
+            } else if (record.embed.media.$type === 'app.bsky.embed.video') {
+                video = record.embed.media
+            }
             quote = record.embed.record
         } else if (record.embed.$type === 'app.bsky.embed.record') {
             quote = record.embed
+        } else if (record.embed.$type === 'app.bsky.embed.video') {
+            video = record.embed
         }
     }
 
@@ -222,7 +230,22 @@ export async function crosspostToTelegram(
     }
 
     let messageIds: number[]
-    if (!images || images.images.length === 0) {
+    if (video) {
+        const res = await api.sendVideo({
+            caption: text,
+            video: await getBlobUrl(
+                event.did,
+                video.video.ref.$link,
+            ),
+            reply_parameters: replyToMessageId ? { message_id: replyToMessageId } : undefined,
+            chat_id: chatId,
+            has_spoiler: spoiler,
+            parse_mode: 'HTML',
+            ...extraParams,
+        })
+
+        messageIds = [res.message_id]
+    } else if (!images || images.images.length === 0) {
         const res = await api.sendMessage({
             text,
             chat_id: chatId,

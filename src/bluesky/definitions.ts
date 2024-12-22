@@ -24,6 +24,23 @@ const ImagesEmbed = v.object({
 })
 export type ImagesEmbed = v.Infer<typeof ImagesEmbed>
 
+const VideoEmbed = v.object({
+    $type: v.literal('app.bsky.embed.video'),
+    video: v.object({
+        $type: v.literal('blob'),
+        ref: v.object({
+            $link: v.string(),
+        }),
+        mimeType: v.string(),
+        size: v.number(),
+    }),
+    aspectRatio: v.object({
+        height: v.number(),
+        width: v.number(),
+    }).optional(),
+})
+export type VideoEmbed = v.Infer<typeof VideoEmbed>
+
 const RecordEmbed = v.object({
     $type: v.literal('app.bsky.embed.record'),
     record: v.object({
@@ -73,9 +90,10 @@ export const BlueskyPost = v.object({
     embed: v.union(
         RecordEmbed,
         ImagesEmbed,
+        VideoEmbed,
         v.object({
             $type: v.literal('app.bsky.embed.recordWithMedia'),
-            media: ImagesEmbed,
+            media: v.union(ImagesEmbed, VideoEmbed),
             record: RecordEmbed,
         }),
         v.object({
