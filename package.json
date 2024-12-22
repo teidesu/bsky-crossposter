@@ -11,7 +11,7 @@
     "scripts": {
         "dev": "dotenv tsx watch src/main.ts",
         "start": "dotenv tsx src/main.ts",
-        "start:prod": "drizzle-kit migrate && tsx src/main.ts"
+        "start:prod": "tsc && drizzle-kit migrate && tsx src/main.ts"
     },
     "dependencies": {
         "@antfu/eslint-config": "^3.12.0",
@@ -25,7 +25,8 @@
         "@types/node": "^22.10.2",
         "better-sqlite3": "^11.7.0",
         "drizzle-orm": "^0.38.2",
-        "tsx": "^4.19.2"
+        "tsx": "^4.19.2",
+        "typescript": "5.7.2"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.12",
