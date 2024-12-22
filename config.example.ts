@@ -1,4 +1,6 @@
 import type { EventHandler } from './src/utils/handler.ts'
+import { assert } from '@fuman/utils'
+import { extractRecordFromEvent } from './src/bluesky/definitions.ts'
 import { getPostThreadgateFor } from './src/bluesky/threadgate.ts'
 import { makeLinkToOriginalPost } from './src/utils/html.ts'
 import { crosspostToTelegram } from './src/utils/telegram.ts'
@@ -11,6 +13,9 @@ import { crosspostToTelegram } from './src/utils/telegram.ts'
 // it will most likely be a string starting with `did:plc:`
 export const watchedDids = ['did:web:tei.su']
 
+// optional: custom jetstream url
+// export const jetstreamUrl = 'wss://jetstream.cerulea.blue'
+
 // the function that will be called when an event is received. usually a post, but is also triggered for reposts and likes
 export const handler: EventHandler = async (event) => {
     // skip if it's not a post
@@ -21,6 +26,11 @@ export const handler: EventHandler = async (event) => {
     if (threadgate && threadgate.allow.some(it => it.$type === 'app.bsky.feed.threadgate#followingRule')) {
         return
     }
+
+    // ignore posts ending with a dot
+    const post = extractRecordFromEvent(event)
+    assert(post?.$type === 'app.bsky.feed.post')
+    if (post.text.endsWith('.')) return
 
     // do the crossposting magic (note: reposts and likes are not supported yet by `crosspostToTelegram`)
     await crosspostToTelegram(event, {
